@@ -1,0 +1,223 @@
+@font-face {
+  font-family: Dosis;
+  src: url(../public/assets/fonts/Dosis-VariableFont_wght.ttf);
+}
+
+:root {
+  --main-radial-gradient: radial-gradient(
+    circle at 30% 120%,
+    #67d7ff,
+    #65d3fe,
+    #5ec7fc,
+    #55b5f9,
+    #4b9df5,
+    #4082ef,
+    #3564e8,
+    #2c47e1,
+    #252ed9,
+    #2c27cb,
+    #3529c1,
+    #3829be
+  );
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  box-sizing: border-box;
+  font-family: Dosis;
+  font-weight: 300;
+}
+
+button {
+  border-radius: 50%;
+  margin: auto 2rem;
+  border: black 2px solid;
+  background: none;
+  font-size: 2em;
+  height: 50px;
+  width: 50px;
+  position: relative;
+  cursor: pointer;
+}
+
+/* # removes unwanted arrows */
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* # header styles */
+
+.app-background {
+  display: flex;
+  flex-direction: column;
+  height: max(40vh, 200px);
+  width: 100vw;
+  background: var(--main-radial-gradient);
+  justify-content: center;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.app-background h1 {
+  color: white;
+  font-weight: 300;
+  font-size: 5em;
+  text-align: center;
+}
+
+.app-background h2 {
+  color: white;
+  font-size: 2em;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 3px;
+  margin-top: 0.5em;
+  text-align: center;
+}
+
+/* # metronome styles */
+
+.metronome-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: black 2px solid;
+  border-radius: 6px;
+  margin: 3rem auto;
+  justify-content: center;
+  padding: 1rem;
+  max-width: 600px;
+}
+
+.metronome-container h2,
+.metronome-container input[type="number"] {
+  width: 100px;
+  height: 60px;
+  display: inline;
+  font-size: 3em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.metronome-container h2:last-child {
+  margin-left: -0.25em;
+}
+
+.row {
+  display: flex;
+  gap: 0.75em;
+  width: 90%;
+  justify-content: center;
+}
+
+.bpm-range {
+  display: flex;
+  min-height: 100px;
+}
+
+.play-button {
+  display: flex;
+  min-height: 175px;
+}
+
+.icon {
+  display: block;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.play-button button {
+  height: 150px;
+  width: 150px;
+  border-radius: 20%;
+}
+
+.play-button button .icon.bigger {
+  height: 125px;
+  width: 125px;
+}
+
+/* # time signature & tap row styles */
+
+.time-signature-and-tap {
+  place-content: space-between;
+}
+
+.time-signature-and-tap button {
+  min-width: 80px;
+  border-radius: 20px;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown .menu {
+  position: absolute;
+  content: "";
+  height: 160px;
+  width: 80px;
+  border: 2px black solid;
+  border-radius: 20px;
+  inset: 0;
+  left: -2px;
+  top: -240px;
+  margin: auto;
+  overflow: scroll;
+  padding: 0;
+  font-size: 2em;
+  text-align: center;
+  clip-path: polygon(0 0, 100% 0%, 100% 100%, 0% 100%);
+  transition: all 300ms ease-in-out;
+}
+
+.dropdown .menu.hidden {
+  clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0% 100%);
+  transition: all 300ms ease-in-out;
+}
+
+.dropdown .menu li {
+  list-style: none;
+  padding: 0.15em;
+  position: relative;
+  cursor: pointer;
+}
+.dropdown .menu li::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background-color: black;
+  inset: 0;
+  bottom: -1.65em;
+  margin: auto;
+}
+
+.dropdown .menu li:last-child::after {
+  display: none;
+}
+
+/* # footer styles */
+
+.footer {
+  background-color: black;
+  color: white;
+  height: 100px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10vw;
+}
