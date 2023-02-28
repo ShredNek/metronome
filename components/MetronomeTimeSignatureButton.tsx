@@ -20,7 +20,13 @@ export default function TimeSignatureButton({
       <ul className={active ? "menu" : "menu hidden"}>
         {Object.values(GLOBALS.TIME_SIGNATURES).map((timeSignature: any) => {
           return (
-            <li onClick={() => parentSetBpb(timeSignature)} key={timeSignature}>
+            <li
+              onClick={() => {
+                parentSetBpb(timeSignature);
+                setActive(false);
+              }}
+              key={timeSignature}
+            >
               {timeSignature}/4
             </li>
           );

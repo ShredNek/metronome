@@ -15,8 +15,18 @@ export default function Metronome() {
   const [metronomeIsOn, setMetronomeIsOn] = useState(false);
   const [bpmTypingEnabled, setBpmTypingEnabled] = useState(false);
   const [beatsPerBar, setBeatsPerBar] = useState(4);
+  const [tapBpm, setTapBpm] = useState(0);
   const cycleRef: any = useRef(null);
-  const bpmInMs = GLOBALS.MINUTE_IN_MS / bpm;
+
+  function bpmNumberToBpmInMs(bpm: number) {
+    let bpmInMs = GLOBALS.MINUTE_IN_MS / bpm;
+    return bpmInMs;
+  }
+
+  function bpmInMsToBpmNumber(bpmInMs: number) {
+    let bpm = GLOBALS.MINUTE_IN_MS / bpmInMs;
+    return Math.floor(bpm);
+  }
 
   const playMetronomeSounds = (arr: HTMLAudioElement[], bpm: number) => {
     let i = 0;
@@ -37,29 +47,13 @@ export default function Metronome() {
     cycleRef.current = null;
   };
 
-  const handleMetronomeAudioSettings = (
-    beatPerBar: number,
-    firstBeatIsAccented: boolean
-  ) => {
+  const handleMetronomeAudioSettings = (beatPerBar: number) => {
     const METRONOME_DOWNBEAT = new Audio(metronomeDownbeatUrl);
     const METRONOME_OFFBEAT = new Audio(metronomeOffbeatUrl);
 
-    let finalSounds: HTMLAudioElement[];
-
-    let i = 0;
-    if (firstBeatIsAccented) {
-      finalSounds = [METRONOME_DOWNBEAT];
-      while (i < beatPerBar - 1) {
-        finalSounds.push(METRONOME_OFFBEAT);
-        i++;
-      }
-      return finalSounds;
-    }
-
-    finalSounds = [];
-    while (i < beatPerBar) {
+    let finalSounds = [METRONOME_DOWNBEAT];
+    for (let i = 0; i < beatPerBar - 1; i++) {
       finalSounds.push(METRONOME_OFFBEAT);
-      i++;
     }
 
     return finalSounds;
@@ -78,6 +72,20 @@ export default function Metronome() {
     }
     if (!isOn) {
       stopMetronome();
+    }
+  }
+
+  function handleTapButtonClick() {
+    let difference = performance.now() - tapBpm;
+    setTapBpm(() => performance.now());
+
+    let newBpm = bpmInMsToBpmNumber(difference);
+    if (newBpm > GLOBALS.BPM_MIN && newBpm < GLOBALS.BPM_MAX) {
+      setBpm(newBpm);
+    } else if (newBpm < GLOBALS.BPM_MIN) {
+      setBpm(GLOBALS.BPM_MIN);
+    } else if (newBpm > GLOBALS.BPM_MAX) {
+      setBpm(GLOBALS.BPM_MAX);
     }
   }
 
@@ -102,9 +110,10 @@ export default function Metronome() {
 
   useEffect(() => {
     if (bpm < GLOBALS.BPM_MIN || bpm > GLOBALS.BPM_MAX) return;
-    let audioForMetronome = handleMetronomeAudioSettings(beatsPerBar, true);
+    let audioForMetronome = handleMetronomeAudioSettings(beatsPerBar);
+    let bpmInMs = bpmNumberToBpmInMs(bpm);
     handleMetronomeAudio(metronomeIsOn, bpmInMs, audioForMetronome);
-  }, [metronomeIsOn, bpm, beatsPerBar, handleMetronomeAudio, bpmInMs]);
+  }, [metronomeIsOn, bpm, beatsPerBar, handleMetronomeAudio]);
 
   return (
     <div className="metronome-container">
@@ -145,10 +154,7 @@ export default function Metronome() {
           beatsPerBar={beatsPerBar}
           parentSetBpb={(childBpb) => setBeatsPerBar(childBpb)}
         ></TimeSignatureButton>
-        {/* 
-        //! TO ADD TAP FUNCTIONALITY LATER
-         */}
-        <button>TAP</button>
+        <button onClick={handleTapButtonClick}>TAP</button>
       </div>
     </div>
   );
