@@ -6,8 +6,7 @@ import MetronomePlayPauseButton from "./MetronomePlayPauseButton";
 import BpmNumberInputContainer from "./MetronomeBpmNumberInputContainer";
 import TimeSignatureButton from "./MetronomeTimeSignatureButton";
 import GLOBALS from "./appConstants";
-import metronomeDownbeatUrl from "../public/assets/sounds/MetronomeTick_1.wav";
-import metronomeOffbeatUrl from "../public/assets/sounds/MetronomeTick_2.wav";
+import MetronomeSamplePicker from "./MetronomeSamplePicker";
 
 export default function Metronome() {
   const [bpm, setBpm] = useState(100);
@@ -16,6 +15,10 @@ export default function Metronome() {
   const [bpmTypingEnabled, setBpmTypingEnabled] = useState(false);
   const [beatsPerBar, setBeatsPerBar] = useState(4);
   const [tapBpm, setTapBpm] = useState(0);
+  const [clickSample, setClickSample] = useState({
+    downBeat: GLOBALS.METRONOME_SAMPLES.CLAVE_DOWNBEAT,
+    offBeat: GLOBALS.METRONOME_SAMPLES.CLAVE_OFFBEAT,
+  });
   const cycleRef: any = useRef(null);
 
   function bpmNumberToBpmInMs(bpm: number) {
@@ -48,12 +51,9 @@ export default function Metronome() {
   };
 
   const handleMetronomeAudioSettings = (beatPerBar: number) => {
-    const METRONOME_DOWNBEAT = new Audio(metronomeDownbeatUrl);
-    const METRONOME_OFFBEAT = new Audio(metronomeOffbeatUrl);
-
-    let finalSounds = [METRONOME_DOWNBEAT];
+    let finalSounds = [new Audio(clickSample.downBeat)];
     for (let i = 0; i < beatPerBar - 1; i++) {
-      finalSounds.push(METRONOME_OFFBEAT);
+      finalSounds.push(new Audio(clickSample.offBeat));
     }
 
     return finalSounds;
@@ -113,7 +113,7 @@ export default function Metronome() {
     let audioForMetronome = handleMetronomeAudioSettings(beatsPerBar);
     let bpmInMs = bpmNumberToBpmInMs(bpm);
     handleMetronomeAudio(metronomeIsOn, bpmInMs, audioForMetronome);
-  }, [metronomeIsOn, bpm, beatsPerBar, handleMetronomeAudio]);
+  }, [metronomeIsOn, beatsPerBar, handleMetronomeAudio]);
 
   return (
     <div className="metronome-container">
@@ -156,6 +156,9 @@ export default function Metronome() {
         ></TimeSignatureButton>
         <button onClick={handleTapButtonClick}>TAP</button>
       </div>
+      <MetronomeSamplePicker
+        parentSetSample={(childSamples) => setClickSample(childSamples)}
+      />
     </div>
   );
 }

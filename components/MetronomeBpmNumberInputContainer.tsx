@@ -24,7 +24,7 @@ export default function BpmNumberInputContainer({
   };
 
   return (
-    <div className="row">
+    <div className="bpm-number-input row">
       {bpmTypingEnabled ? (
         <input
           type="number"
