@@ -30,14 +30,18 @@
   font-weight: 300;
 }
 
+body {
+  min-width: 300px;
+}
+
 button {
   border-radius: 50%;
   margin: auto 2rem;
   border: black 2px solid;
   background: none;
   font-size: 2em;
-  height: 50px;
-  width: 50px;
+  min-height: 50px;
+  min-width: 50px;
   position: relative;
   cursor: pointer;
 }
@@ -59,8 +63,8 @@ input[type="number"] {
 .app-background {
   display: flex;
   flex-direction: column;
-  height: max(40vh, 200px);
-  width: 100vw;
+  height: max(40vh, 300px);
+  width: max(100vw, auto);
   background: var(--main-radial-gradient);
   justify-content: center;
   top: 0;
@@ -153,11 +157,13 @@ input[type="number"] {
 
 .time-signature-and-tap {
   place-content: space-between;
+  margin: 1rem;
 }
 
 .time-signature-and-tap button {
   min-width: 80px;
   border-radius: 20px;
+  margin: 0;
 }
 
 .dropdown {
@@ -214,10 +220,38 @@ input[type="number"] {
 .footer {
   background-color: black;
   color: white;
-  height: 100px;
+  min-height: 100px;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 10vw;
+  padding: max(5vh, 2rem) 10vw;
+}
+
+@media (max-width: 450px) {
+  button {
+    margin: auto 1rem;
+  }
+
+  .metronome-container {
+    margin: 3rem 1.5rem;
+  }
+
+  .app-background h1 {
+    font-size: 3.5em;
+  }
+
+  .app-background h2 {
+    font-size: 1.5em;
+  }
+
+  input[type="range"] {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .metronome-container {
+    margin: 3rem 1.5rem;
+  }
 }
