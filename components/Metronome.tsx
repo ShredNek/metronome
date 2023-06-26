@@ -6,11 +6,19 @@ import MetronomePlayPauseButton from "./MetronomePlayPauseButton";
 import BpmNumberInputContainer from "./MetronomeBpmNumberInputContainer";
 import TimeSignatureButton from "./MetronomeTimeSignatureButton";
 import GLOBALS from "./appConstants";
+import {
+  bpmNumberToBpmInMs,
+  bpmCycleTimer,
+  controlMetronomeAudio,
+  handleEachMetronomeBeatSounds,
+  handleTapButtonClick,
+} from "./utilityFunctions";
 import MetronomeSamplePicker from "./MetronomeSamplePicker";
 
 export default function Metronome() {
   const [bpm, setBpm] = useState(100);
   const [mouseDown, setMouseDown] = useState({ add: false, sub: false });
+  const [isLongPress, setIsLongPress] = useState(false);
   const [metronomeIsOn, setMetronomeIsOn] = useState(false);
   const [bpmTypingEnabled, setBpmTypingEnabled] = useState(false);
   const [beatsPerBar, setBeatsPerBar] = useState(4);
@@ -19,101 +27,92 @@ export default function Metronome() {
     downBeat: GLOBALS.METRONOME_SAMPLES.CLAVE_DOWNBEAT,
     offBeat: GLOBALS.METRONOME_SAMPLES.CLAVE_OFFBEAT,
   });
-  const cycleRef: any = useRef(null);
+  const bpmCycleThroughSoundsRef: bpmCycleTimer = useRef();
+  const timerRef: React.MutableRefObject<NodeJS.Timeout | undefined> = useRef();
 
-  function bpmNumberToBpmInMs(bpm: number) {
-    let bpmInMs = GLOBALS.MINUTE_IN_MS / bpm;
-    return bpmInMs;
-  }
-
-  function bpmInMsToBpmNumber(bpmInMs: number) {
-    let bpm = GLOBALS.MINUTE_IN_MS / bpmInMs;
-    return Math.floor(bpm);
-  }
-
-  const playMetronomeSounds = (arr: HTMLAudioElement[], bpm: number) => {
-    let i = 0;
-    const cycleArray = () => {
-      let sound = arr[i];
-      sound.currentTime = 0;
-      sound.play();
-      i++;
-      if (i === arr.length) {
-        i = 0;
-      }
-    };
-    cycleRef.current = setInterval(cycleArray, bpm);
+  const onTapButtonClick = () => {
+    handleTapButtonClick(
+      tapBpm,
+      GLOBALS.BPM_MAX,
+      GLOBALS.BPM_MIN,
+      setTapBpm,
+      setBpm
+    );
   };
 
-  const stopMetronome = () => {
-    clearInterval(cycleRef.current);
-    cycleRef.current = null;
+  const handleMouseDown = (incOrDec: string) => {
+    incOrDec === GLOBALS.INCREMENT
+      ? setMouseDown({ add: true, sub: false })
+      : incOrDec === GLOBALS.DECREMENT
+      ? setMouseDown({ add: false, sub: true })
+      : null;
+
+    handleOnMouseDown();
   };
 
-  const handleMetronomeAudioSettings = (beatPerBar: number) => {
-    let finalSounds = [new Audio(clickSample.downBeat)];
-    for (let i = 0; i < beatPerBar - 1; i++) {
-      finalSounds.push(new Audio(clickSample.offBeat));
-    }
-
-    return finalSounds;
+  const handleMouseUp = () => {
+    setMouseDown({ add: false, sub: false });
+    handleOnMouseUp();
   };
 
-  function handleMetronomeAudio(
-    isOn: boolean,
-    bpmInMs: number,
-    sounds: HTMLAudioElement[]
-  ) {
-    // ? this cleans up any previous tempo interval
-    stopMetronome();
+  // ?
+  // ?
+  // ? Stuff
+  // ?
+  // ?
 
-    if (isOn) {
-      playMetronomeSounds(sounds, bpmInMs);
-    }
-    if (!isOn) {
-      stopMetronome();
-    }
+  function startPressTimer() {
+    timerRef.current = setTimeout(() => {
+      setIsLongPress(true);
+    }, 500);
   }
 
-  function handleTapButtonClick() {
-    let difference = performance.now() - tapBpm;
-    setTapBpm(() => performance.now());
-
-    let newBpm = bpmInMsToBpmNumber(difference);
-    if (newBpm > GLOBALS.BPM_MIN && newBpm < GLOBALS.BPM_MAX) {
-      setBpm(newBpm);
-    } else if (newBpm < GLOBALS.BPM_MIN) {
-      setBpm(GLOBALS.BPM_MIN);
-    } else if (newBpm > GLOBALS.BPM_MAX) {
-      setBpm(GLOBALS.BPM_MAX);
-    }
+  function handleOnMouseDown() {
+    startPressTimer();
   }
 
+  function handleOnMouseUp() {
+    clearTimeout(timerRef.current);
+    setIsLongPress(false);
+  }
+
+  // ? this code is run every time the bpm changes
   useEffect(() => {
-    let interval: ReturnType<typeof setTimeout>;
+    let interval: NodeJS.Timer;
+
     if (mouseDown.add) {
-      bpm < GLOBALS.BPM_MAX
-        ? (interval = setInterval(() => {
-            setBpm(bpm + 1);
-          }, GLOBALS.CLICK_SENSITIVITY))
-        : null;
+      if (bpm < GLOBALS.BPM_MAX && isLongPress) {
+        interval = setInterval(() => {
+          setBpm(bpm + 1);
+        }, GLOBALS.CLICK_SENSITIVITY);
+      }
     }
     if (mouseDown.sub) {
-      bpm > GLOBALS.BPM_MIN
-        ? (interval = setInterval(() => {
-            setBpm(bpm - 1);
-          }, GLOBALS.CLICK_SENSITIVITY))
-        : null;
+      if (bpm > GLOBALS.BPM_MIN && isLongPress) {
+        interval = setInterval(() => {
+          setBpm(bpm - 1);
+        }, GLOBALS.CLICK_SENSITIVITY);
+      }
     }
+
     return () => clearInterval(interval);
-  }, [mouseDown, bpm]);
+  }, [mouseDown, bpm, isLongPress]);
 
   useEffect(() => {
     if (bpm < GLOBALS.BPM_MIN || bpm > GLOBALS.BPM_MAX) return;
-    let audioForMetronome = handleMetronomeAudioSettings(beatsPerBar);
-    let bpmInMs = bpmNumberToBpmInMs(bpm);
-    handleMetronomeAudio(metronomeIsOn, bpmInMs, audioForMetronome);
-  }, [metronomeIsOn, beatsPerBar, handleMetronomeAudio]);
+    const audioForMetronome = handleEachMetronomeBeatSounds(
+      beatsPerBar,
+      clickSample.downBeat,
+      clickSample.offBeat
+    );
+    const bpmInMs = bpmNumberToBpmInMs(bpm);
+    controlMetronomeAudio(
+      metronomeIsOn,
+      bpmInMs,
+      audioForMetronome,
+      bpmCycleThroughSoundsRef
+    );
+  }, [metronomeIsOn, beatsPerBar, bpm, clickSample]);
 
   return (
     <div className="metronome-container">
@@ -129,8 +128,8 @@ export default function Metronome() {
           incOrDec={GLOBALS.DECREMENT}
           bpm={bpm}
           setBpm={() => setBpm(bpm - 1)}
-          mouseDown={() => setMouseDown({ add: false, sub: true })}
-          mouseUp={() => setMouseDown({ add: false, sub: false })}
+          mouseDown={() => handleMouseDown(GLOBALS.DECREMENT)}
+          mouseUp={() => handleMouseUp()}
         ></IncOrDecBpmButton>
         <BpmRangeInput
           bpm={bpm}
@@ -141,8 +140,8 @@ export default function Metronome() {
           incOrDec={GLOBALS.INCREMENT}
           bpm={bpm}
           setBpm={() => setBpm(bpm + 1)}
-          mouseDown={() => setMouseDown({ add: true, sub: false })}
-          mouseUp={() => setMouseDown({ add: false, sub: false })}
+          mouseDown={() => handleMouseDown(GLOBALS.INCREMENT)}
+          mouseUp={() => handleMouseUp()}
         ></IncOrDecBpmButton>
       </div>
       <MetronomePlayPauseButton
@@ -154,7 +153,7 @@ export default function Metronome() {
           beatsPerBar={beatsPerBar}
           parentSetBpb={(childBpb) => setBeatsPerBar(childBpb)}
         ></TimeSignatureButton>
-        <button onClick={handleTapButtonClick}>TAP</button>
+        <button onClick={onTapButtonClick}>TAP</button>
       </div>
       <MetronomeSamplePicker
         parentSetSample={(childSamples) => setClickSample(childSamples)}
